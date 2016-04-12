@@ -1,4 +1,5 @@
 import numpy as np
+from showdown_parser import Action
 
 class Converter(object):
 
@@ -11,6 +12,14 @@ class Converter(object):
         self.move_index = 0
         self.move_forward_mapping = {}
         self.move_backward_mapping = []
+
+    def get_actions(self):
+        actions = []
+        for i in xrange(self.move_index):
+            actions.append(Action.from_string("Move(%s)" % self.move_backward_mapping[i]))
+        for i in xrange(self.poke_index):
+            actions.append(Action.from_string("Switch(%s)" % self.poke_backward_mapping[i]))
+        return actions
 
     def learn_encodings(self, experiences):
         for experience in experiences:
