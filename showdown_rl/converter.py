@@ -51,8 +51,10 @@ class Converter(object):
         poke = state.get_primary(0)
         poke = self.convert_poke_name(poke.name)
         my_team = [self.encode_poke(p.name) for p in state.get_team(0)]
+        assert len(my_team) <= 6
         my_team_vec = [0] * self.poke_index
-        their_team = [self.encode_poke(p.name) for p in state.get_team(0)]
+        their_team = [self.encode_poke(p.name) for p in state.get_team(1)]
+        assert len(their_team) <= 6
         their_team_vec = [0] * self.poke_index
         for my_poke, their_poke in zip(my_team[1:], their_team[1:]):
             my_team_vec[my_poke.argmax()] = 1
@@ -67,6 +69,7 @@ class Converter(object):
             state.get_faints(1) + [1] * (6 - len(their_team)),
             state.get_healths(1) + [0] * (6 - len(their_team)),
         ])
+        assert x.shape[0] == self.get_input_dimension()
         return x.astype(np.float32)
 
     def encode_action(self, action):

@@ -21,8 +21,8 @@ def predict(experience):
                                          state.get_health(0),
                                          correct_poke(state.get_primary(1).name),
                                          state.get_health(1))
-    print "My team: %s" % ', '.join(["%s[%f]" % (correct_poke(p.get_name()), p.health) for p in state.get_team(0)[1:]])
-    print "Their team: %s" % ', '.join([correct_poke(p.get_name()) for p in state.get_team(1)[1:]])
+    print "My team: %s" % ', '.join(["%s[%.2f]" % (correct_poke(p.get_name()), p.health) for p in state.get_team(0)[1:]])
+    print "Their team: %s" % ', '.join(["%s[%.2f]" % (correct_poke(p.get_name()), p.health) for p in state.get_team(1)[1:]])
     print
     print "My action: %s" % experience[1]
     print
@@ -36,17 +36,16 @@ def predict(experience):
         else:
             print "Move(%s) %.3f" % (converter.move_backward_mapping[prediction], probs[orig])
 
-def train(iters):
+def train(iters, batch_size=200):
 
     idx = np.arange(len(experiences))
     avg_loss = None
     exs = np.random.permutation(experiences)
     for i in xrange(iters):
         ix = np.random.choice(idx)
-        es = exs[ix: ix + 512]
-        X, y = zip(*[(converter.encode_state(e[0]), converter.encode_action(e[1])) for e in es])
-        X = np.stack(X, axis=0)
-        y = np.stack(y, axis=0)
+        es = exs[ix: ix + batch_size]
+        X = np.stack([converter.encode_state(e[0]) for e in es], axis=0)
+        y = np.stack([converter.encode_action(e[1]) for e in es], axis=0)
         loss = adam.train(X, y, 0.001)
         if avg_loss is None:
             avg_loss = loss
@@ -62,7 +61,8 @@ if __name__ == "__main__":
             for experience in parse_log(log):
                 experiences.append(experience)
         except:
-            print "Failed on replay:", replay_id
+            pass
+            # print "Failed on replay:", replay_id
             # import traceback
             # traceback.print_exc()
     converter = Converter()
